@@ -24,7 +24,7 @@ def fp32(*values):
 # WGAN & WGAN-GP loss functions.
 
 def G_wgan(G, D, opt, training_set, minibatch_size): # pylint: disable=unused-argument
-    latents = tf.random_normal([minibatch_size] + G.input_shapes[0][1:])
+    latents = tf.compat.v1.random_normal([minibatch_size] + G.input_shapes[0][1:])
     labels = training_set.get_random_labels_tf(minibatch_size)
     fake_images_out = G.get_output_for(latents, labels, is_training=True)
     fake_scores_out = fp32(D.get_output_for(fake_images_out, labels, is_training=True))
@@ -34,7 +34,7 @@ def G_wgan(G, D, opt, training_set, minibatch_size): # pylint: disable=unused-ar
 def D_wgan(G, D, opt, training_set, minibatch_size, reals, labels, # pylint: disable=unused-argument
     wgan_epsilon = 0.001): # Weight for the epsilon term, \epsilon_{drift}.
 
-    latents = tf.random_normal([minibatch_size] + G.input_shapes[0][1:])
+    latents = tf.compat.v1.random_normal([minibatch_size] + G.input_shapes[0][1:])
     fake_images_out = G.get_output_for(latents, labels, is_training=True)
     real_scores_out = fp32(D.get_output_for(reals, labels, is_training=True))
     fake_scores_out = fp32(D.get_output_for(fake_images_out, labels, is_training=True))
@@ -52,7 +52,7 @@ def D_wgan_gp(G, D, opt, training_set, minibatch_size, reals, labels, # pylint: 
     wgan_epsilon    = 0.001,    # Weight for the epsilon term, \epsilon_{drift}.
     wgan_target     = 1.0):     # Target value for gradient magnitudes.
 
-    latents = tf.random_normal([minibatch_size] + G.input_shapes[0][1:])
+    latents = tf.compat.v1.random_normal([minibatch_size] + G.input_shapes[0][1:])
     fake_images_out = G.get_output_for(latents, labels, is_training=True)
     real_scores_out = fp32(D.get_output_for(reals, labels, is_training=True))
     fake_scores_out = fp32(D.get_output_for(fake_images_out, labels, is_training=True))
@@ -61,7 +61,7 @@ def D_wgan_gp(G, D, opt, training_set, minibatch_size, reals, labels, # pylint: 
     loss = fake_scores_out - real_scores_out
 
     with tf.name_scope('GradientPenalty'):
-        mixing_factors = tf.random_uniform([minibatch_size, 1, 1, 1], 0.0, 1.0, dtype=fake_images_out.dtype)
+        mixing_factors = tf.compat.v1.random_uniform([minibatch_size, 1, 1, 1], 0.0, 1.0, dtype=fake_images_out.dtype)
         mixed_images_out = tflib.lerp(tf.cast(reals, fake_images_out.dtype), fake_images_out, mixing_factors)
         mixed_scores_out = fp32(D.get_output_for(mixed_images_out, labels, is_training=True))
         mixed_scores_out = autosummary('Loss/scores/mixed', mixed_scores_out)
@@ -81,7 +81,7 @@ def D_wgan_gp(G, D, opt, training_set, minibatch_size, reals, labels, # pylint: 
 # Hinge loss functions. (Use G_wgan with these)
 
 def D_hinge(G, D, opt, training_set, minibatch_size, reals, labels): # pylint: disable=unused-argument
-    latents = tf.random_normal([minibatch_size] + G.input_shapes[0][1:])
+    latents = tf.compat.v1.random_normal([minibatch_size] + G.input_shapes[0][1:])
     fake_images_out = G.get_output_for(latents, labels, is_training=True)
     real_scores_out = fp32(D.get_output_for(reals, labels, is_training=True))
     fake_scores_out = fp32(D.get_output_for(fake_images_out, labels, is_training=True))
@@ -94,7 +94,7 @@ def D_hinge_gp(G, D, opt, training_set, minibatch_size, reals, labels, # pylint:
     wgan_lambda     = 10.0,     # Weight for the gradient penalty term.
     wgan_target     = 1.0):     # Target value for gradient magnitudes.
 
-    latents = tf.random_normal([minibatch_size] + G.input_shapes[0][1:])
+    latents = tf.compat.v1.random_normal([minibatch_size] + G.input_shapes[0][1:])
     fake_images_out = G.get_output_for(latents, labels, is_training=True)
     real_scores_out = fp32(D.get_output_for(reals, labels, is_training=True))
     fake_scores_out = fp32(D.get_output_for(fake_images_out, labels, is_training=True))
@@ -103,7 +103,7 @@ def D_hinge_gp(G, D, opt, training_set, minibatch_size, reals, labels, # pylint:
     loss = tf.maximum(0., 1.+fake_scores_out) + tf.maximum(0., 1.-real_scores_out)
 
     with tf.name_scope('GradientPenalty'):
-        mixing_factors = tf.random_uniform([minibatch_size, 1, 1, 1], 0.0, 1.0, dtype=fake_images_out.dtype)
+        mixing_factors = tf.compat.v1.random_uniform([minibatch_size, 1, 1, 1], 0.0, 1.0, dtype=fake_images_out.dtype)
         mixed_images_out = tflib.lerp(tf.cast(reals, fake_images_out.dtype), fake_images_out, mixing_factors)
         mixed_scores_out = fp32(D.get_output_for(mixed_images_out, labels, is_training=True))
         mixed_scores_out = autosummary('Loss/scores/mixed', mixed_scores_out)
@@ -121,7 +121,7 @@ def D_hinge_gp(G, D, opt, training_set, minibatch_size, reals, labels, # pylint:
 # "Which Training Methods for GANs do actually Converge?"
 
 def G_logistic_saturating(G, D, opt, training_set, minibatch_size): # pylint: disable=unused-argument
-    latents = tf.random_normal([minibatch_size] + G.input_shapes[0][1:])
+    latents = tf.compat.v1.random_normal([minibatch_size] + G.input_shapes[0][1:])
     labels = training_set.get_random_labels_tf(minibatch_size)
     fake_images_out = G.get_output_for(latents, labels, is_training=True)
     fake_scores_out = fp32(D.get_output_for(fake_images_out, labels, is_training=True))
@@ -129,7 +129,7 @@ def G_logistic_saturating(G, D, opt, training_set, minibatch_size): # pylint: di
     return loss
 
 def G_logistic_nonsaturating(G, D, opt, training_set, minibatch_size): # pylint: disable=unused-argument
-    latents = tf.random_normal([minibatch_size] + G.input_shapes[0][1:])
+    latents = tf.compat.v1.random_normal([minibatch_size] + G.input_shapes[0][1:])
     labels = training_set.get_random_labels_tf(minibatch_size)
     fake_images_out = G.get_output_for(latents, labels, is_training=True)
     fake_scores_out = fp32(D.get_output_for(fake_images_out, labels, is_training=True))
@@ -137,7 +137,7 @@ def G_logistic_nonsaturating(G, D, opt, training_set, minibatch_size): # pylint:
     return loss
 
 def D_logistic(G, D, opt, training_set, minibatch_size, reals, labels): # pylint: disable=unused-argument
-    latents = tf.random_normal([minibatch_size] + G.input_shapes[0][1:])
+    latents = tf.compat.v1.random_normal([minibatch_size] + G.input_shapes[0][1:])
     fake_images_out = G.get_output_for(latents, labels, is_training=True)
     real_scores_out = fp32(D.get_output_for(reals, labels, is_training=True))
     fake_scores_out = fp32(D.get_output_for(fake_images_out, labels, is_training=True))
@@ -148,7 +148,7 @@ def D_logistic(G, D, opt, training_set, minibatch_size, reals, labels): # pylint
     return loss
 
 def D_logistic_simplegp(G, D, opt, training_set, minibatch_size, reals, labels, r1_gamma=10.0, r2_gamma=0.0): # pylint: disable=unused-argument
-    latents = tf.random_normal([minibatch_size] + G.input_shapes[0][1:])
+    latents = tf.compat.v1.random_normal([minibatch_size] + G.input_shapes[0][1:])
     fake_images_out = G.get_output_for(latents, labels, is_training=True)
     real_scores_out = fp32(D.get_output_for(reals, labels, is_training=True))
     fake_scores_out = fp32(D.get_output_for(fake_images_out, labels, is_training=True))

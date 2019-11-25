@@ -54,8 +54,8 @@ class PPL(metric_base.MetricBase):
                 noise_vars = [var for name, var in Gs_clone.components.synthesis.vars.items() if name.startswith('noise')]
 
                 # Generate random latents and interpolation t-values.
-                lat_t01 = tf.random_normal([self.minibatch_per_gpu * 2] + Gs_clone.input_shape[1:])
-                lerp_t = tf.random_uniform([self.minibatch_per_gpu], 0.0, 1.0 if self.sampling == 'full' else 0.0)
+                lat_t01 = tf.compat.v1.random_normal([self.minibatch_per_gpu * 2] + Gs_clone.input_shape[1:])
+                lerp_t = tf.compat.v1.random_uniform([self.minibatch_per_gpu], 0.0, 1.0 if self.sampling == 'full' else 0.0)
 
                 # Interpolate in W or Z.
                 if self.space == 'w':

@@ -31,7 +31,7 @@ def process_reals(x, lod, mirror_augment, drange_data, drange_net):
         if mirror_augment:
             with tf.name_scope('MirrorAugment'):
                 s = tf.shape(x)
-                mask = tf.random_uniform([s[0], 1, 1, 1], 0.0, 1.0)
+                mask = tf.compat.v1.random_uniform([s[0], 1, 1, 1], 0.0, 1.0)
                 mask = tf.tile(mask, [1, s[1], s[2], s[3]])
                 x = tf.where(mask < 0.5, x, tf.reverse(x, axis=[3]))
         with tf.name_scope('FadeLOD'): # Smooth crossfade between consecutive levels-of-detail.
@@ -138,6 +138,10 @@ def training_loop(
     resume_kimg             = 0.0,      # Assumed training progress at the beginning. Affects reporting and training schedule.
     resume_time             = 0.0):     # Assumed wallclock time at the beginning. Affects reporting.
 
+
+    # disable eager execution because we running in compat mode
+    tf.compat.v1.disable_eager_execution()
+
     # Initialize dnnlib and TensorFlow.
     ctx = dnnlib.RunContext(submit_config, train)
     tflib.init_tf(tf_config)
@@ -160,11 +164,11 @@ def training_loop(
 
     print('Building TensorFlow graph...')
     with tf.name_scope('Inputs'), tf.device('/cpu:0'):
-        lod_in          = tf.placeholder(tf.float32, name='lod_in', shape=[])
-        lrate_in        = tf.placeholder(tf.float32, name='lrate_in', shape=[])
-        minibatch_in    = tf.placeholder(tf.int32, name='minibatch_in', shape=[])
+        lod_in          = tf.compat.v1.placeholder(tf.float32, name='lod_in', shape=[])
+        lrate_in        = tf.compat.v1.placeholder(tf.float32, name='lrate_in', shape=[])
+        minibatch_in    = tf.compat.v1.placeholder(tf.int32, name='minibatch_in', shape=[])
         minibatch_split = minibatch_in // submit_config.num_gpus
-        Gs_beta         = 0.5 ** tf.div(tf.cast(minibatch_in, tf.float32), G_smoothing_kimg * 1000.0) if G_smoothing_kimg > 0.0 else 0.0
+        Gs_beta         = 0.5 ** tf.compat.v1.div(tf.cast(minibatch_in, tf.float32), G_smoothing_kimg * 1000.0) if G_smoothing_kimg > 0.0 else 0.0
 
     G_opt = tflib.Optimizer(name='TrainG', learning_rate=lrate_in, **G_opt_args)
     D_opt = tflib.Optimizer(name='TrainD', learning_rate=lrate_in, **D_opt_args)
@@ -172,7 +176,7 @@ def training_loop(
         with tf.name_scope('GPU%d' % gpu), tf.device('/gpu:%d' % gpu):
             G_gpu = G if gpu == 0 else G.clone(G.name + '_shadow')
             D_gpu = D if gpu == 0 else D.clone(D.name + '_shadow')
-            lod_assign_ops = [tf.assign(G_gpu.find_var('lod'), lod_in), tf.assign(D_gpu.find_var('lod'), lod_in)]
+            lod_assign_ops = [tf.compat.v1.assign(G_gpu.find_var('lod'), lod_in), tf.compat.v1.assign(D_gpu.find_var('lod'), lod_in)]
             reals, labels = training_set.get_minibatch_tf()
             reals = process_reals(reals, lod_in, mirror_augment, training_set.dynamic_range, drange_net)
             with tf.name_scope('G_loss'), tf.control_dependencies(lod_assign_ops):

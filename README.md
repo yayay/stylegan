@@ -1,6 +1,6 @@
-## StyleGAN &mdash; Official TensorFlow Implementation
+## StyleGAN &mdash; Official TensorFlow 2.0 Implementation
 ![Python 3.6](https://img.shields.io/badge/python-3.6-green.svg?style=plastic)
-![TensorFlow 1.10](https://img.shields.io/badge/tensorflow-1.10-green.svg?style=plastic)
+![TensorFlow 2.00](https://img.shields.io/badge/tensorflow-2.00-green.svg?style=plastic)
 ![cuDNN 7.3.1](https://img.shields.io/badge/cudnn-7.3.1-green.svg?style=plastic)
 ![License CC BY-NC](https://img.shields.io/badge/license-CC_BY--NC-green.svg?style=plastic)
 
@@ -143,7 +143,7 @@ There are three ways to use the pre-trained generator:
 
 2. Use `Gs.get_output_for()` to incorporate the generator as a part of a larger TensorFlow expression:
    ```
-   latents = tf.random_normal([self.minibatch_per_gpu] + Gs_clone.input_shape[1:])
+   latents = tf.compat.v1.random_normal([self.minibatch_per_gpu] + Gs_clone.input_shape[1:])
    images = Gs_clone.get_output_for(latents, None, is_validation=True, randomize_noise=True)
    images = tflib.convert_images_to_uint8(images)
    result_expr.append(inception_clone.get_output_for(images))

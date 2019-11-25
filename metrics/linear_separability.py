@@ -120,7 +120,7 @@ class LS(metric_base.MetricBase):
                 Gs_clone = Gs.clone()
 
                 # Generate images.
-                latents = tf.random_normal([self.minibatch_per_gpu] + Gs_clone.input_shape[1:])
+                latents = tf.compat.v1.random_normal([self.minibatch_per_gpu] + Gs_clone.input_shape[1:])
                 dlatents = Gs_clone.components.mapping.get_output_for(latents, None, is_validation=True)
                 images = Gs_clone.components.synthesis.get_output_for(dlatents, is_validation=True, randomize_noise=True)
 
